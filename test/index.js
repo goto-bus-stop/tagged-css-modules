@@ -36,3 +36,17 @@ test('Options: generateScopedName', (t) => {
     header: 'custom exported name'
   }, 'Should generate mangled classNames using generateScopedName option')
 })
+
+test('Options: plugins', (t) => {
+  t.plan(1)
+
+  let value
+  css.make({
+    insertCss: (text) => { value = text.replace(/\s+/g, ' ') },
+    plugins: [
+      (tree) => tree.append('status { it: worked }')
+    ]
+  })``
+
+  t.equal(value, 'status { it: worked }', 'It uses custom plugins')
+})
