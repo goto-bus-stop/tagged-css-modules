@@ -63,6 +63,6 @@ test('composes style objects', (t) => {
   `
 
   t.deepEqual(styles, {
-    sub: 'sub_0 base_0'
+    sub: 'sub_1 base_0'
   })
 })

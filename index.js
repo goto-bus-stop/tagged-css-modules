@@ -18,6 +18,8 @@ function makeCss (opts) {
 
   css.make = (overrides) => makeCss(Object.assign({}, opts, overrides))
 
+  let ruleId = 0
+
   function css (sources, ...exprs) {
     const virtualFiles = []
     const translations = {}
@@ -78,14 +80,13 @@ function makeCss (opts) {
       })
     }
 
-    let ruleId = 0
     const result = postcss([
       postcssValues,
       postcssLocalByDefault,
       postcssExtractImports,
       postcssScope({
         generateScopedName: opts.generateScopedName ||
-          ((exportedName) => `${exportedName}_${ruleId}`)
+          ((exportedName) => `${exportedName}_${ruleId++}`)
       }),
       resolveImports,
       (tree) => replaceSymbols(tree, translations),
