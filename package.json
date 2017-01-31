@@ -1,0 +1,22 @@
+{
+  "name": "tagged-css-modules",
+  "version": "0.0.0",
+  "description": "Use CSS Modules inline in tagged template strings.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "css-modules"
+  ],
+  "author": "Renée Kooi <renee@kooi.me>",
+  "license": "ISC",
+  "dependencies": {
+    "insert-css": "^2.0.0",
+    "postcss": "^5.2.11",
+    "postcss-modules-extract-imports": "^1.0.1",
+    "postcss-modules-local-by-default": "^1.1.1",
+    "postcss-modules-scope": "^1.0.2",
+    "postcss-modules-values": "^1.2.2"
+  }
+}
