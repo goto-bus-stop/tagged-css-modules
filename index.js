@@ -1,19 +1,21 @@
-const insertCss = require('insert-css')
+const defaultInsertCss = require('insert-css')
 const postcss = require('postcss')
 const postcssValues = require('postcss-modules-values')
 const postcssLocalByDefault = require('postcss-modules-local-by-default')
 const postcssExtractImports = require('postcss-modules-extract-imports')
 const postcssScope = require('postcss-modules-scope')
 
-module.exports = css()
-module.exports.make = css
+module.exports = makeCss()
 
-function css (opts) {
+function makeCss (opts) {
   opts = Object.assign({
+    insertCss: defaultInsertCss,
     plugins: []
   }, opts)
 
-  return (sources, ...exprs) => {
+  css.make = (overrides) => makeCss(Object.assign({}, opts, overrides))
+
+  function css (sources, ...exprs) {
     const text = sources
       .map((source, i) => source + (exprs[i] || ''))
       .join('')
@@ -50,8 +52,10 @@ function css (opts) {
       ...opts.plugins
     ]).process(text)
 
-    insertCss(result.css)
+    opts.insertCss(result.css)
 
     return exportNames
   }
+
+  return css
 }

@@ -1,16 +1,26 @@
 const test = require('tape')
-const css = require('proxyquire')('../', {
-  'insert-css': () => {} // stub
+const css = require('../')
+
+const stubCss = css.make({
+  insertCss: () => {}
+})
+
+test('Custom insertCss function', (t) => {
+  t.plan(1)
+
+  const styles = css.make({
+    insertCss: () => t.pass('Should call custom insertCss')
+  })`.header {}`
 })
 
 test('Basic functionality', (t) => {
   t.plan(2)
 
-  t.deepEqual(css.make()`.header {}`, {
+  t.deepEqual(stubCss.make()`.header {}`, {
     header: 'header_0'
   }, 'Should return the className → mangled className map')
 
-  t.deepEqual(css.make()`:global(body) {} .header {}`, {
+  t.deepEqual(stubCss.make()`:global(body) {} .header {}`, {
     header: 'header_0'
   }, 'Should not return global rules')
 })
@@ -18,7 +28,7 @@ test('Basic functionality', (t) => {
 test('Options: generateScopedName', (t) => {
   t.plan(1)
 
-  const custom = css.make({
+  const custom = stubCss.make({
     generateScopedName: () => 'custom exported name'
   })
 
