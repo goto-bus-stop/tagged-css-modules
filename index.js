@@ -16,7 +16,14 @@ function makeCss (opts) {
     plugins: []
   }, opts)
 
-  css.make = (overrides) => makeCss(Object.assign({}, opts, overrides))
+  // create a new instance with custom config.
+  css.make = (overrides) => makeCss(opts).set(overrides)
+
+  // set config of the current instance.
+  css.set = (overrides) => {
+    Object.assign(opts, overrides)
+    return css
+  }
 
   let ruleId = 0
 
