@@ -4,6 +4,9 @@ const postcssValues = require('postcss-modules-values')
 const postcssLocalByDefault = require('postcss-modules-local-by-default')
 const postcssExtractImports = require('postcss-modules-extract-imports')
 const postcssScope = require('postcss-modules-scope')
+const replaceSymbols = require('icss-replace-symbols').default
+
+const importRe = /^:import\((.+)\)$/
 
 module.exports = makeCss()
 
@@ -16,9 +19,45 @@ function makeCss (opts) {
   css.make = (overrides) => makeCss(Object.assign({}, opts, overrides))
 
   function css (sources, ...exprs) {
-    const text = sources
-      .map((source, i) => source + (exprs[i] || ''))
-      .join('')
+    const virtualFiles = []
+    const translations = {}
+
+    const text = sources.reduce((text, source, i) => {
+      const expr = exprs[i] || ''
+      if (typeof expr === 'object') {
+        // probably composing (TODO maybe add a symbol to identify)
+        const virtIndex = virtualFiles.push(expr)
+        return `${text}${source}"virt://${virtIndex - 1}"`
+      }
+      return `${text}${source}${expr}`
+    }, '')
+
+    function resolveImport (importNode, importPath) {
+      const match = importPath.match(/^"virt:\/\/(\d+)"$/)
+      if (!match) {
+        return
+      }
+
+      const origin = virtualFiles[match[1]]
+      importNode.each((decl) => {
+        translations[decl.prop] = origin[decl.value]
+      })
+
+      importNode.remove()
+    }
+
+    function resolveImports (tree) {
+      tree.each((node) => {
+        if (node.type !== 'rule') {
+          return
+        }
+
+        let match = node.selector.match(importRe)
+        if (match) {
+          resolveImport(node, match[1])
+        }
+      })
+    }
 
     const exportNames = {}
 
@@ -31,8 +70,8 @@ function makeCss (opts) {
       exportNode.remove()
     }
 
-    function extractExports (css) {
-      css.each((node) => {
+    function extractExports (tree) {
+      tree.each((node) => {
         if (node.type === 'rule' && node.selector === ':export') {
           handleExport(node)
         }
@@ -48,6 +87,8 @@ function makeCss (opts) {
         generateScopedName: opts.generateScopedName ||
           ((exportedName) => `${exportedName}_${ruleId}`)
       }),
+      resolveImports,
+      (tree) => replaceSymbols(tree, translations),
       extractExports,
       ...opts.plugins
     ]).process(text)

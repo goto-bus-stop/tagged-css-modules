@@ -50,3 +50,19 @@ test('Options: plugins', (t) => {
 
   t.equal(value, 'status { it: worked }', 'It uses custom plugins')
 })
+
+test('composes style objects', (t) => {
+  t.plan(1)
+  const inst = stubCss.make()
+  const parent = inst`.base { background: red }`
+  const styles = inst`
+    .sub {
+      composes: base from ${parent};
+      color: white;
+    }
+  `
+
+  t.deepEqual(styles, {
+    sub: 'sub_0 base_0'
+  })
+})

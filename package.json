@@ -12,6 +12,7 @@
   "author": "Renée Kooi <renee@kooi.me>",
   "license": "ISC",
   "dependencies": {
+    "icss-replace-symbols": "^1.0.2",
     "insert-css": "^2.0.0",
     "postcss": "^5.2.11",
     "postcss-modules-extract-imports": "^1.0.1",
