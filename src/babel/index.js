@@ -1,7 +1,7 @@
 const fs = require('fs')
 const postcss = require('postcss')
 const extractRuntimeRules = require('./extractRuntimeRules')
-const process = require('tagged-css-modules/core')
+const process = require('../core')
 
 const RUNTIME_IDENTIFIER = extractRuntimeRules.RUNTIME_IDENTIFIER
 

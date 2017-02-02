@@ -1,6 +1,7 @@
 node_modules
 
 # Compiled files
+/babel
 /index.js
 /core.js
 /runtime.js
