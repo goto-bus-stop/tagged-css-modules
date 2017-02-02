@@ -1,12 +1,24 @@
 {
   "name": "babel-plugin-tagged-css-modules",
   "version": "0.0.0",
-  "description": "",
+  "description": "Use CSS Modules inline in tagged template strings.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "keywords": [
+    "css-modules"
+  ],
+  "author": "Renée Kooi <renee@kooi.me>",
+  "license": "ISC",
+  "engines": {
+    "node": ">= 4"
+  },
+  "dependencies": {
+    "postcss": "^5.2.11",
+    "tagged-css-modules": "*"
+  },
+  "peerDependencies": {
+    "tagged-css-modules": "*"
+  }
 }

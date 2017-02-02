@@ -1,7 +1,7 @@
 const fs = require('fs')
 const postcss = require('postcss')
 const extractRuntimeRules = require('./extractRuntimeRules')
-const process = require('../core')
+const process = require('tagged-css-modules/core')
 
 const RUNTIME_IDENTIFIER = extractRuntimeRules.RUNTIME_IDENTIFIER
 
@@ -139,7 +139,6 @@ module.exports = ({ types: t }) => {
 
       VariableDeclarator (path, { file }) {
         const initPath = path.get('init')
-        console.log(initPath.node)
         if (!initPath.isCallExpression()) {
           return
         }
