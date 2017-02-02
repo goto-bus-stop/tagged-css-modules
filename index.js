@@ -1,6 +1,8 @@
 const defaultInsertCss = require('insert-css')
 const process = require('./core')
 
+const composingRe = /composes:\s*(.*?)\s+from\s*$/
+
 module.exports = makeCss()
 
 function makeCss (opts) {
@@ -28,6 +30,11 @@ function makeCss (opts) {
     const text = sources.reduce((text, source, i) => {
       const expr = exprs[i] || ''
       if (typeof expr === 'object') {
+        if (!composingRe.test(source)) {
+          throw new Error('Tried to embed an object in an unsupported position. ' +
+                          'Objects can only be composed.')
+        }
+
         // probably composing (TODO maybe add a symbol to identify)
         const virtIndex = virtualFiles.push(expr)
         return `${text}${source}"virt://${virtIndex - 1}"`
