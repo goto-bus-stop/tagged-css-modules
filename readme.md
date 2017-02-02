@@ -53,6 +53,36 @@ mangled names:
 }
 ```
 
+## `composes:` and imports
+
+Because `tagged-css-modules` runs in the browser, it can't load referenced CSS
+files from the filesystem like native css-modules. So, composing classnames from
+different files is a little different. It uses style objects instead of file
+names.
+
+```js
+// utilities.js
+module.exports = css`
+  .centerContents {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+`
+```
+
+```js
+const utilities = require('./utilities')
+const styles = css`
+  .header {
+    composes: centerContents from ${utilities};
+    font: 150% Open Sans;
+  }
+`
+```
+
+The classnames used for composition are concatenated at runtime.
+
 ## License
 
 [ISC](./LICENSE)
