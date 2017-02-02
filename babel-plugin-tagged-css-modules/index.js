@@ -1,6 +1,9 @@
 const fs = require('fs')
 const postcss = require('postcss')
+const extractRuntimeRules = require('./extractRuntimeRules')
 const process = require('../core')
+
+const RUNTIME_IDENTIFIER = extractRuntimeRules.RUNTIME_IDENTIFIER
 
 module.exports = ({ types: t }) => {
   const cssTagVariables = Symbol('tagged-css-modules variables')
@@ -9,39 +12,10 @@ module.exports = ({ types: t }) => {
     plugins: []
   }
 
-  const RUNTIME_IDENTIFIER = '-tagged-css-modules-runtime'
-
   const composingRe = /composes:\s*(.*?)\s+from\s*$/
   const combinedCss = []
   const virtualFiles = []
   let ruleId = 0
-
-  function resolveRuntimeRules () {
-    const runtimeRules = []
-    return {
-      exists () {
-        return runtimeRules.length > 0
-      },
-      get () {
-        return runtimeRules.join('\n')
-      },
-      plugin (tree, result) {
-        let rule
-        tree.walkDecls((decl) => {
-          if (decl.value.indexOf(RUNTIME_IDENTIFIER) !== -1) {
-            if (!rule || rule.selector !== decl.parent.selector) {
-              rule = postcss.rule({
-                selector: decl.parent.selector,
-              })
-              runtimeRules.push(rule)
-            }
-            rule.append(decl)
-            decl.remove()
-          }
-        })
-      }
-    }
-  }
 
   function processCssModule (quasis, expressions) {
     const cssSource = quasis.reduce((full, chunk, i) => {
@@ -70,7 +44,7 @@ module.exports = ({ types: t }) => {
       return `${full}${chunk}${RUNTIME_IDENTIFIER}(${i})`
     }, '')
 
-    const runtimeRules = resolveRuntimeRules()
+    const runtimeRules = extractRuntimeRules()
     const result = process(cssSource, {
       virtualFiles,
       generateScopedName: (exportedName) => `${exportedName}_${ruleId++}`,
