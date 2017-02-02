@@ -67,8 +67,7 @@ module.exports = (text, opts) => {
     ...opts.plugins
   ]).process(text)
 
-  return {
-    css: result.css,
-    exports: exportNames
-  }
+  result.exports = exportNames
+
+  return result
 }

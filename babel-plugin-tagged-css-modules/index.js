@@ -1,4 +1,5 @@
 const fs = require('fs')
+const postcss = require('postcss')
 const process = require('../core')
 
 module.exports = ({ types: t }) => {
@@ -14,6 +15,33 @@ module.exports = ({ types: t }) => {
   const combinedCss = []
   const virtualFiles = []
   let ruleId = 0
+
+  function resolveRuntimeRules () {
+    const runtimeRules = []
+    return {
+      exists () {
+        return runtimeRules.length > 0
+      },
+      get () {
+        return runtimeRules.join('\n')
+      },
+      plugin (tree, result) {
+        let rule
+        tree.walkDecls((decl) => {
+          if (decl.value.indexOf(RUNTIME_IDENTIFIER) !== -1) {
+            if (!rule || rule.selector !== decl.parent.selector) {
+              rule = postcss.rule({
+                selector: decl.parent.selector,
+              })
+              runtimeRules.push(rule)
+            }
+            rule.append(decl)
+            decl.remove()
+          }
+        })
+      }
+    }
+  }
 
   function processCssModule (quasis, expressions) {
     const cssSource = quasis.reduce((full, chunk, i) => {
@@ -32,20 +60,24 @@ module.exports = ({ types: t }) => {
         const virtIndex = virtualFiles.length
         virtualFiles.push({
           // Rewrite composed classnames to a special identifier
-          get: (prop) => `-tagged-css-modules-import(${virtIndex},${prop})`
+          get: (prop) => `-tagged-css-modules-import(${i},${prop})`
         })
         return `${full}${chunk}"virt://${virtIndex}"`
       }
       // An expression anywhere else in the file is a value that should be
       // inlined at runtime. (TODO do the inlining and also probably restrict
       // this to property values only.)
-      return `${full}${chunk}${RUNTIME_IDENTIFIER}(${i})\0`
+      return `${full}${chunk}${RUNTIME_IDENTIFIER}(${i})`
     }, '')
 
+    const runtimeRules = resolveRuntimeRules()
     const result = process(cssSource, {
       virtualFiles,
       generateScopedName: (exportedName) => `${exportedName}_${ruleId++}`,
-      plugins: opts.plugins
+      plugins: [
+        runtimeRules.plugin,
+        ...opts.plugins
+      ]
     })
 
     combinedCss.push(result.css)
@@ -89,18 +121,31 @@ module.exports = ({ types: t }) => {
       )
     })
 
+    let runtimeCss = ''
+    if (runtimeRules.exists()) {
+      const parts = runtimeRules.get().split(/-tagged-css-modules-runtime\((\d+)\)/g)
+      runtimeCss = parts.map((part, i) => {
+        if (i % 2 === 1) {
+          return t.callExpression(t.identifier('String'), [expressions[part]])
+        }
+        return t.stringLiteral(part)
+      }).reduce((a, b) => t.binaryExpression('+', a, b))
+    }
+
     return {
       raw: result.css,
-      module: t.objectExpression(exportNames)
+      module: t.objectExpression(exportNames),
+      runtimeCss
     }
   }
 
   return {
-    pre (state) {
-      // if (!state.opts.output) {
-      //   throw new Error('Must provide an output .css file.')
-      // }
+    pre () {
+      if (!this.opts.output) {
+        this.opts.inline = true
+      }
     },
+
     visitor: {
       Program: {
         enter (path, state) {
@@ -129,11 +174,19 @@ module.exports = ({ types: t }) => {
             )
 
             path.replaceWith(styles.module)
-            if (state.opts.inline) {
+            if (this.opts.inline) {
               path.insertBefore(
                 t.callExpression(
                   t.memberExpression(tag, t.identifier('insert')),
                   [t.stringLiteral(styles.raw)]
+                )
+              )
+            }
+            if (styles.runtimeCss) {
+              path.insertBefore(
+                t.callExpression(
+                  t.memberExpression(tag, t.identifier('insert')),
+                  [styles.runtimeCss]
                 )
               )
             }
