@@ -137,6 +137,26 @@ module.exports = ({ types: t }) => {
         }
       },
 
+      VariableDeclarator (path, { file }) {
+        const initPath = path.get('init')
+        console.log(initPath.node)
+        if (!initPath.isCallExpression()) {
+          return
+        }
+
+        const callee = initPath.get('callee')
+        const firstArg = initPath.get('arguments')[0]
+
+        if (!firstArg || !firstArg.isStringLiteral({ value: 'tagged-css-modules' })) {
+          return
+        }
+
+        if (callee.isIdentifier({ name: 'require' })) {
+          file[cssTagVariables].push(path.node.id.name)
+          firstArg.node.value = 'tagged-css-modules/runtime'
+        }
+      },
+
       TaggedTemplateExpression (path, state) {
         state.file[cssTagVariables].forEach((variable) => {
           if (path.get('tag').isIdentifier({ name: variable })) {
