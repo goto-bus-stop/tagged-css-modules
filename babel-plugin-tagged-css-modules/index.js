@@ -188,11 +188,9 @@ module.exports = ({ types: t }) => {
         })
       }
     },
-    post (state) {
-      const output = state.opts.output
-      if (!output) {
-        console.log(combinedCss.join('\n'))
-      } else {
+    post () {
+      const output = this.opts.output
+      if (output) {
         fs.writeFileSync(output, combinedCss.join('\n'))
       }
     }
