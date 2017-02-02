@@ -8,6 +8,8 @@ module.exports = ({ types: t }) => {
     plugins: []
   }
 
+  const RUNTIME_IDENTIFIER = '-tagged-css-modules-runtime'
+
   const composingRe = /composes:\s*(.*?)\s+from\s*$/
   const combinedCss = []
   const virtualFiles = []
@@ -30,14 +32,14 @@ module.exports = ({ types: t }) => {
         const virtIndex = virtualFiles.length
         virtualFiles.push({
           // Rewrite composed classnames to a special identifier
-          get: (prop) => `\0import:${virtIndex}:${prop}\0`
+          get: (prop) => `-tagged-css-modules-import(${virtIndex},${prop})`
         })
         return `${full}${chunk}"virt://${virtIndex}"`
       }
       // An expression anywhere else in the file is a value that should be
       // inlined at runtime. (TODO do the inlining and also probably restrict
       // this to property values only.)
-      return `${full}${chunk}\0runtime(${JSON.stringify(expr)})\0`
+      return `${full}${chunk}${RUNTIME_IDENTIFIER}(${i})\0`
     }, '')
 
     const result = process(cssSource, {
@@ -54,7 +56,7 @@ module.exports = ({ types: t }) => {
         .map((part) => {
           // Resolve imported classnames back to their JavaScript classname
           // objects
-          const match = /\0import:(\d+):(.*?)\0/.exec(part)
+          const match = /-tagged-css-modules-import\((\d+),(.*?)\)/.exec(part)
           if (match) {
             return t.memberExpression(
               expressions[match[1]],
