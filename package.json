@@ -1,6 +1,6 @@
 {
   "name": "tagged-css-modules",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use CSS Modules inline in tagged template strings.",
   "author": "Renée Kooi <renee@kooi.me>",
   "license": "ISC",
