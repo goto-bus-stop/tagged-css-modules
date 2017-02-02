@@ -16,5 +16,7 @@ function makeCss (opts) {
     return css
   }
 
-  return function css () {}
+  function css () {}
+
+  return css
 }
