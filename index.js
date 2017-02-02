@@ -1,12 +1,5 @@
 const defaultInsertCss = require('insert-css')
-const postcss = require('postcss')
-const postcssValues = require('postcss-modules-values')
-const postcssLocalByDefault = require('postcss-modules-local-by-default')
-const postcssExtractImports = require('postcss-modules-extract-imports')
-const postcssScope = require('postcss-modules-scope')
-const replaceSymbols = require('icss-replace-symbols').default
-
-const importRe = /^:import\((.+)\)$/
+const process = require('./core')
 
 module.exports = makeCss()
 
@@ -15,6 +8,8 @@ function makeCss (opts) {
     insertCss: defaultInsertCss,
     plugins: []
   }, opts)
+
+  css.insert = (arg) => opts.insertCss(arg)
 
   // create a new instance with custom config.
   css.make = (overrides) => makeCss(opts).set(overrides)
@@ -29,7 +24,6 @@ function makeCss (opts) {
 
   function css (sources, ...exprs) {
     const virtualFiles = []
-    const translations = {}
 
     const text = sources.reduce((text, source, i) => {
       const expr = exprs[i] || ''
@@ -41,69 +35,16 @@ function makeCss (opts) {
       return `${text}${source}${expr}`
     }, '')
 
-    function resolveImport (importNode, importPath) {
-      const match = importPath.match(/^"virt:\/\/(\d+)"$/)
-      if (!match) {
-        return
-      }
+    const result = process(text, {
+      virtualFiles: virtualFiles,
+      generateScopedName: opts.generateScopedName ||
+        ((exportedName) => `${exportedName}_${ruleId++}`),
+      plugins: opts.plugins
+    })
 
-      const origin = virtualFiles[match[1]]
-      importNode.each((decl) => {
-        translations[decl.prop] = origin[decl.value]
-      })
+    css.insert(result.css)
 
-      importNode.remove()
-    }
-
-    function resolveImports (tree) {
-      tree.each((node) => {
-        if (node.type !== 'rule') {
-          return
-        }
-
-        let match = node.selector.match(importRe)
-        if (match) {
-          resolveImport(node, match[1])
-        }
-      })
-    }
-
-    const exportNames = {}
-
-    function handleExport (exportNode) {
-      exportNode.each((decl) => {
-        if (decl.type === 'decl') {
-          exportNames[decl.prop] = decl.value
-        }
-      })
-      exportNode.remove()
-    }
-
-    function extractExports (tree) {
-      tree.each((node) => {
-        if (node.type === 'rule' && node.selector === ':export') {
-          handleExport(node)
-        }
-      })
-    }
-
-    const result = postcss([
-      postcssValues,
-      postcssLocalByDefault,
-      postcssExtractImports,
-      postcssScope({
-        generateScopedName: opts.generateScopedName ||
-          ((exportedName) => `${exportedName}_${ruleId++}`)
-      }),
-      resolveImports,
-      (tree) => replaceSymbols(tree, translations),
-      extractExports,
-      ...opts.plugins
-    ]).process(text)
-
-    opts.insertCss(result.css)
-
-    return exportNames
+    return result.exports
   }
 
   return css
