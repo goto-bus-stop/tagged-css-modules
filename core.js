@@ -18,7 +18,7 @@ module.exports = (text, opts) => {
 
     const origin = opts.virtualFiles[match[1]]
     importNode.each((decl) => {
-      translations[decl.prop] = origin[decl.value]
+      translations[decl.prop] = origin.get ? origin.get(decl.value) : origin[decl.value]
     })
 
     importNode.remove()
