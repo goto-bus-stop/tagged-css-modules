@@ -56,21 +56,40 @@ module.exports = ({ types: t }) => {
 
     combinedCss.push(result.css)
 
+    /**
+     * Get a Babel AST node that will refer to the given className at runtime.
+     * Imported className placeholders are resolved to JS object member access.
+     *
+     * @param {string} value CSS className.
+     */
+    function classNameToNode (value) {
+      const match = /-tagged-css-modules-import\((\d+),(.*?)\)/.exec(value)
+      if (match) {
+        return t.memberExpression(
+          expressions[match[1]],
+          t.identifier(match[2])
+        )
+      }
+      return t.stringLiteral(value)
+    }
+
+    /**
+     * Join a list of AST Nodes, space-separated, at runtime.
+     *
+     * @param {Array.<Node>} parts
+     */
+    function joinNodes (parts) {
+      // [parts, ...].join(' ')
+      return t.callExpression(
+        t.memberExpression(t.arrayExpression(parts), t.identifier('join')),
+        [t.stringLiteral(' ')]
+      )
+    }
+
     const exportNames = Object.keys(result.exports).map((name) => {
       const parts = result.exports[name]
         .split(/\s+/g)
-        .map((part) => {
-          // Resolve imported classnames back to their JavaScript classname
-          // objects
-          const match = /-tagged-css-modules-import\((\d+),(.*?)\)/.exec(part)
-          if (match) {
-            return t.memberExpression(
-              expressions[match[1]],
-              t.identifier(match[2])
-            )
-          }
-          return t.stringLiteral(part)
-        })
+        .map(classNameToNode)
 
       // If we only have string literals, i.e. we know every classname in
       // advance, we can concat it in advance.
@@ -88,10 +107,7 @@ module.exports = ({ types: t }) => {
       // Otherwise compose classnames at runtime using [].join
       return t.objectProperty(
         t.stringLiteral(name),
-        t.callExpression(
-          t.memberExpression(t.arrayExpression(parts), t.identifier('join')),
-          [t.stringLiteral(' ')]
-        )
+        joinNodes(parts)
       )
     })
 
@@ -111,6 +127,13 @@ module.exports = ({ types: t }) => {
       module: t.objectExpression(exportNames),
       runtimeCss
     }
+  }
+
+  function callInsertCss (tag, contents) {
+    return t.callExpression(
+      t.memberExpression(tag, t.identifier('insert')),
+      [contents]
+    )
   }
 
   return {
@@ -168,20 +191,10 @@ module.exports = ({ types: t }) => {
 
             path.replaceWith(styles.module)
             if (this.opts.inline) {
-              path.insertBefore(
-                t.callExpression(
-                  t.memberExpression(tag, t.identifier('insert')),
-                  [t.stringLiteral(styles.raw)]
-                )
-              )
+              path.insertBefore(callInsertCss(tag, t.stringLiteral(styles.raw)))
             }
             if (styles.runtimeCss) {
-              path.insertBefore(
-                t.callExpression(
-                  t.memberExpression(tag, t.identifier('insert')),
-                  [styles.runtimeCss]
-                )
-              )
+              path.insertBefore(callInsertCss(tag, styles.runtimeCss))
             }
           }
         })
