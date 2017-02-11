@@ -1,3 +1,5 @@
+'use strict'
+
 const path = require('path')
 const fs = require('fs')
 const test = require('tape')
@@ -9,12 +11,12 @@ function unpad (str) {
   return stripIndent(str).trim()
 }
 
-function transform (src, options = {}) {
+function transform (src, options) {
   delete require.cache[pluginModule]
   const css = require(pluginModule)
   return babel.transform(src, {
     plugins: [
-      [css, options]
+      [css, options || {}]
     ]
   }).code.trim()
 }
