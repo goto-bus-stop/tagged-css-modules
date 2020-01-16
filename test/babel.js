@@ -3,7 +3,7 @@
 const path = require('path')
 const fs = require('fs')
 const test = require('tape')
-const babel = require('babel-core')
+const babel = require('@babel/core')
 const stripIndent = require('strip-indent')
 const pluginModule = require.resolve('../babel')
 
@@ -14,7 +14,7 @@ function unpad (str) {
 function transform (src, options) {
   delete require.cache[pluginModule]
   const css = require(pluginModule)
-  return babel.transform(src, {
+  return babel.transformSync(src, {
     plugins: [
       [css, options || {}]
     ]
@@ -29,10 +29,9 @@ test('Basic functionality', (t) => {
 
     const styles = css\`.header {}\`
   `)), unpad(`
-    import css from 'tagged-css-modules/runtime';
-
-    const styles = (css.insert('.header_0 {}'), {
-      'header': 'header_0'
+    import css from "tagged-css-modules/runtime";
+    const styles = (css.insert(".header_0 {}"), {
+      "header": "header_0"
     });
   `))
 })
@@ -43,14 +42,13 @@ test('Output css to separate file', (t) => {
   const output = path.join(__dirname, 'output.css')
 
   t.strictEqual(transform(unpad(`
-    import css from 'tagged-css-modules'
+    import css from "tagged-css-modules"
 
     const styles = css\`.header {}\`
   `), { output }), unpad(`
-    import css from 'tagged-css-modules/runtime';
-
+    import css from "tagged-css-modules/runtime";
     const styles = {
-      'header': 'header_0'
+      "header": "header_0"
     };
   `))
 
@@ -89,15 +87,14 @@ test('Composing style objects', (t) => {
       }
     \`
   `), { output }), unpad(`
-    import css from 'tagged-css-modules/runtime';
-
+    import css from "tagged-css-modules/runtime";
     const parent = {
-      'base': 'base_0'
+      "base": "base_0"
     };
     const styles = {
-      'sub': ['sub_1', parent.base].join(' ')
+      "sub": ["sub_1", parent.base].join(" ")
     };
   `))
 
-  fs.unlink(output)
+  fs.unlinkSync(output)
 })
