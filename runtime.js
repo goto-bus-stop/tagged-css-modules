@@ -1,18 +1,23 @@
-const defaultInsertCss = require('insert-css')
+var defaultInsertCss = require('insert-css')
+var xtend = require('xtend/mutable')
 
 module.exports = makeCss()
 
 function makeCss (opts) {
-  opts = Object.assign({ insertCss: defaultInsertCss }, opts)
+  opts = xtend({ insertCss: defaultInsertCss }, opts)
 
-  css.insert = (arg) => opts.insertCss(arg)
+  css.insert = function (arg) {
+    return opts.insertCss(arg)
+  }
 
   // create a new instance with custom config.
-  css.make = (overrides) => makeCss(opts).set(overrides)
+  css.make = function (overrides) {
+    return makeCss(opts).set(overrides)
+  }
 
   // set config of the current instance.
-  css.set = (overrides) => {
-    Object.assign(opts, overrides)
+  css.set = function (overrides) {
+    xtend(opts, overrides)
     return css
   }
 
