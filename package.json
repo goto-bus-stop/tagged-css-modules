@@ -7,7 +7,7 @@
   "repository": "goto-bus-stop/tagged-css-modules",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/*.js"
+    "test": "standard && tape test/*.js"
   },
   "keywords": [
     "css-modules"
