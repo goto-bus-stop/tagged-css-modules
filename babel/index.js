@@ -1,5 +1,4 @@
 const fs = require('fs')
-const postcss = require('postcss')
 const extractRuntimeRules = require('./extractRuntimeRules')
 const process = require('../core')
 
@@ -148,7 +147,7 @@ module.exports = ({ types: t }) => {
         enter (path, state) {
           Object.assign(opts, state.opts)
           state.file[cssTagVariables] = []
-        },
+        }
       },
 
       ImportDeclaration (path, { file }) {

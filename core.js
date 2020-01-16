@@ -30,7 +30,7 @@ module.exports = (text, opts) => {
         return
       }
 
-      let match = node.selector.match(importRe)
+      const match = node.selector.match(importRe)
       if (match) {
         resolveImport(node, match[1])
       }

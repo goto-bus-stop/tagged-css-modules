@@ -39,7 +39,7 @@ function extractRuntimeRules () {
 
       if (!rule || rule.selector !== decl.parent.selector) {
         rule = postcss.rule({
-          selector: decl.parent.selector,
+          selector: decl.parent.selector
         })
         runtimeRules.push(rule)
       }

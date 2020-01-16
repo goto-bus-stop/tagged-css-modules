@@ -10,7 +10,7 @@ const stubCss = css.make({
 test('Custom insertCss function', (t) => {
   t.plan(1)
 
-  const styles = css.make({
+  css.make({
     insertCss: () => t.pass('Should call custom insertCss')
   })`.header {}`
 })
