@@ -15,11 +15,11 @@
   "dependencies": {
     "icss-replace-symbols": "^1.0.2",
     "insert-css": "^2.0.0",
-    "postcss": "^5.2.11",
-    "postcss-modules-extract-imports": "^1.0.1",
-    "postcss-modules-local-by-default": "^1.1.1",
-    "postcss-modules-scope": "^1.0.2",
-    "postcss-modules-values": "^1.2.2"
+    "postcss": "^7.0.0",
+    "postcss-modules-extract-imports": "^2.0.0",
+    "postcss-modules-local-by-default": "^3.0.2",
+    "postcss-modules-scope": "^2.1.1",
+    "postcss-modules-values": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.3",
