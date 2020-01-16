@@ -7,7 +7,7 @@ Use CSS Modules inline in tagged template strings.
 ## Example
 
 ```js
-const bel = require('bel')
+const html = require('nanohtml')
 const css = require('tagged-css-modules')
 
 const styles = css`
@@ -25,7 +25,7 @@ const styles = css`
   }
 `
 
-document.body.appendChild(bel`
+document.body.appendChild(html`
   <div class="${styles.header}">
     <h1 class="${styles.headerText}"></h1>
   </div>
