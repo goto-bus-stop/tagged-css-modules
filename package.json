@@ -7,9 +7,7 @@
   "repository": "goto-bus-stop/tagged-css-modules",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/*.js",
-    "build": "babel src --out-dir . --presets latest",
-    "prepublish": "npm run build"
+    "test": "tape test/*.js"
   },
   "keywords": [
     "css-modules"
@@ -24,10 +22,6 @@
     "postcss-modules-values": "^1.2.2"
   },
   "devDependencies": {
-    "babel-cli": "^6.22.2",
-    "babel-core": "^6.22.1",
-    "babel-preset-latest": "^6.22.0",
-    "proxyquire": "^1.7.11",
     "strip-indent": "^2.0.0",
     "tape": "^4.6.3"
   }
